@@ -1,0 +1,5 @@
+﻿  coil4c.cpp
+  readData.cpp
+  正在生成代码...
+E:\Code\c++\coil4c\coil4c\coil4c.cpp(10,20): warning C4018: “<”: 有符号/无符号不匹配
+  coil4c.vcxproj -> E:\Code\c++\coil4c\Debug\coil4c.exe
