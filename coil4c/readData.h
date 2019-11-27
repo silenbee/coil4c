@@ -7,3 +7,4 @@
 using namespace std;
 
 vector<vector<string>> readcsv(string filePath);
+vector<float> grad(vector<float> input);

@@ -110,6 +110,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>libfftw3-3.lib;libfftw3f-3.lib;libfftw3l-3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -153,6 +154,7 @@
   <ItemGroup>
     <ClCompile Include="coil4c.cpp" />
     <ClCompile Include="readData.cpp" />
+    <ClCompile Include="tri.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="readData.h" />

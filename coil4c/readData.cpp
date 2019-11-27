@@ -1,5 +1,5 @@
 #include "readData.h"
-
+#include<math.h>
 vector<vector<string>> readcsv(string filePath) {
 	ifstream inFile(filePath, ios::in);//inFile来自fstream,ifstream为输入文件流(从文件读入)
 	string lineStr;
@@ -22,4 +22,18 @@ vector<vector<string>> readcsv(string filePath) {
 		}
 	}
 	return strArray;
+}
+
+vector<float> grad(vector<float> input) {
+	vector<float> op;
+	float tmp;
+	for (int i = 0; i < input.size(); i++) {
+		if (i >= 2 && i <= input.size() - 2)
+			tmp = (input[i + 1] - input[i - 1]) / 2;
+		else if (i == 0)
+			tmp = input[1] - input[0];
+		else tmp = input[i-1] - input[i];
+		op.push_back(abs(tmp));
+	}
+	return op;
 }
