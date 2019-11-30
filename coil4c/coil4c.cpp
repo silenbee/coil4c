@@ -67,18 +67,40 @@ for (int i = (int)(N / 2); i < (50000 - (int)(N / 2)); i += step) {
 	//vector<int> tmp;
 	//copy(intArray[0].begin() + (i - N / 2), intArray[0].begin() + (i + N / 2), tmp.begin()); //区间拷贝
 	vector<int> tmp(intArray[0].begin() + (i - N / 2), intArray[0].begin() + (i + N / 2));
-	// 傅里叶变换
+	// flourea
 	for (int j = 0; j < tmp.size(); j++)
 		in[j] = float(tmp[j]);
 	p = fftwf_plan_dft_r2c_1d(len, in, out, FFTW_ESTIMATE);
 	fftwf_execute(p);
 	
+	//if (i == N/2) {
+	//	for (int j = 0; j < 50; j++) {
+	//		float v = sqrt(out[j][0] * out[j][0] + out[j][1] * out[j][1]);
+	//		printf("%d: %f\n",j,v);
+	//	}
+	//	printf("\n");
+	//}
 	float len = sqrt(out[2][0] * out[2][0] + out[2][1] * out[2][1]);
+	len /= (N / 2);
 	res.push_back(len);
 	fftwf_destroy_plan(p);
 }
 
 grad_value = grad(res);
+grad_value = m_conv(grad_value, 500, true);
+grad_value = m_conv(grad_value, 100, false);
+printf("res.size: %d\n", res.size());
+printf("grad value after convolve:\n");
+for (int i = 0; i < 10; i++) {
+	printf("%f ", grad_value[i]);
+}
+
+printf("\n");
+printf("res:\n");
+for (int i = 0; i < 10; i++) {
+	printf("%f ", res[i]);
+}
+printf("\n");
 
 int k = 0;
 for (int i = 1; i < grad_value.size(); i++)
@@ -86,9 +108,9 @@ for (int i = 1; i < grad_value.size(); i++)
 	if (grad_value[i] > grad_value[k]) k = i;
 }
 // k = k * step + N / 2;
-printf("%d\n", k);
+printf("value of k: %d\n", k);
 k = k * step + N / 2;
-printf("%d\n", k);
+printf("index of max: %d\n", k);
 // 释放资源
 
 fftwf_free(in);

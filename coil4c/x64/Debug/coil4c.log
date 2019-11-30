@@ -1,2 +1,4 @@
-﻿  coil4c.cpp
+﻿  readData.cpp
+E:\Code\c++\coil4c\coil4c\readData.cpp(32,40): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+E:\Code\c++\coil4c\coil4c\readData.cpp(43,28): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
   coil4c.vcxproj -> E:\Code\c++\coil4c\x64\Debug\coil4c.exe
