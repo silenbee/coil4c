@@ -33,7 +33,7 @@ vector<float> grad(vector<float> input) {
 		else if (i == 0)
 			tmp = input[1] - input[0];
 		else tmp = input[i-1] - input[i];
-		op.push_back(abs(tmp));
+		op.push_back(fabs(tmp));
 	}
 	return op;
 }
@@ -47,7 +47,7 @@ vector<double> grad(vector<double> input) {
 		else if (i == 0)
 			tmp = input[1] - input[0];
 		else tmp = input[i-1] - input[i];
-		op.push_back(abs(tmp));
+		op.push_back(fabs(tmp));
 	}
 	return op;
 }
@@ -56,8 +56,8 @@ vector<float> m_conv(vector<float> input,int r,bool mean) {
 	vector<float> res;
 	int in_size = input.size();
 	for (int i = 0; i < in_size; i++) {
-		float sum = 0;
-		float cnt = 0;
+		float sum = 0.0;
+		float cnt = 0.0;
 		if (i<r){
 			for (int j = 0; j < i; j++) {
 				sum += input[j];
@@ -83,7 +83,7 @@ vector<float> m_conv(vector<float> input,int r,bool mean) {
 			cnt += r;
 		}
 		if (mean)
-			res.push_back(sum / cnt);
+			res.push_back(sum / (cnt *1.0));
 		else res.push_back(sum);
 	}
 	return res;
@@ -93,8 +93,8 @@ vector<double> m_conv(vector<double> input,int r,bool mean) {
 	vector<double> res;
 	int in_size = input.size();
 	for (int i = 0; i < in_size; i++) {
-		double sum = 0;
-		double cnt = 0;
+		double sum = 0.0;
+		double cnt = 0.0;
 		if (i<r){
 			for (int j = 0; j < i; j++) {
 				sum += input[j];
@@ -120,8 +120,22 @@ vector<double> m_conv(vector<double> input,int r,bool mean) {
 			cnt += r;
 		}
 		if (mean)
-			res.push_back(sum / cnt);
+			res.push_back(sum / (cnt*1.0));
 		else res.push_back(sum);
 	}
 	return res;
+}
+
+bool ampli_check(const vector<int> &input, int point){
+	int start_point = (point - 50) > 0 ? point - 50 : 0;
+	double avg_ampli = 0.0;
+	int cnt = 0;
+	for(int i = start_point;i < (point-20)>0?point-20:0;i++){
+		avg_ampli+=input[i];
+		cnt++;
+	}
+	avg_ampli/=(1.0)*cnt;
+
+	printf("avg: %lf, grad_point: %d\n", avg_ampli, input[point]);
+	return fabs(input[point]-avg_ampli) >= avg_ampli;
 }
