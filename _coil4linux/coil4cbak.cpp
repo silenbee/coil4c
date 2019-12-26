@@ -1,4 +1,4 @@
-﻿// coil4c.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
+// coil4c.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
 
 //#include "readData.h"
@@ -26,11 +26,6 @@
 using namespace std;
 
 const double PI = 3.1415;
-int N = 4000;
-int step = 5;
-
-void compute_data(vector<vector<int> > &intArray, vector<double> &res);
-int check_data(const vector<double> &res, vector<double>& grad_value);
 
 int main(){
 	// read data csv
@@ -50,31 +45,9 @@ int main(){
 			intArray[i].push_back(atoi(strArray[i][j].c_str()));
 	}
 
-	// after read data
-	
-	compute_data(intArray, res);
-
-	printf("res.size: %ld\n", res.size());
-	printf("res:\n");
-	for (int i = 0; i < 10; i++) {
-		printf("%f ", res[i]);
-	}
-	// check 
-	int grad_max_point = check_data(res, grad_value);
-	//debug part
-	
-	if(ampli_check(intArray[0], grad_max_point)){
-		printf("abnormal point detected at: %d",grad_max_point);
-		// printf("")
-	}
-
-	return 0;
-}
-
-
-void compute_data(vector<vector<int> > &intArray, vector<double> &res){
 	// do fft
-
+	int N = 4000;
+	int step = 5;
 	//-----define
 	int len = 4000;
 	double* in = NULL;
@@ -102,19 +75,18 @@ void compute_data(vector<vector<int> > &intArray, vector<double> &res){
 		fftw_destroy_plan(p);
 	}
 
-	fftw_free(in);
-	fftw_free(out);
+	printf("res.size: %ld\n", res.size());
+	printf("res:\n");
+	for (int i = 0; i < 10; i++) {
+		printf("%f ", res[i]);
+	}
 
-}
-
-int check_data(const vector<double> &res, vector<double>& grad_value){
 	grad_value = grad(res);
 	printf("\ngrad value of res:\n");
 	for (int i = 0; i < 10; i++) {
 		printf("%f ", grad_value[i]);
 	}
 	printf("\n");
-
 	grad_value = m_conv(grad_value, 500, true);
 	grad_value = m_conv(grad_value, 100, false);
 
@@ -123,6 +95,11 @@ int check_data(const vector<double> &res, vector<double>& grad_value){
 		printf("%f ", grad_value[i]);
 	}
 
+
+	// printf("res:\n");
+	// for (int i = 0; i < 10; i++) {
+	// 	printf("%f ", res[i]);
+	// }
 	printf("\n");
 
 	int k = 0;
@@ -135,6 +112,16 @@ int check_data(const vector<double> &res, vector<double>& grad_value){
 	k = k * step + N / 2;
 	printf("index of max: %d\n", k);
 	// 释放资源
-	return k;
-	
+
+	if(ampli_check(intArray[0], k)){
+		printf("abnormal point detected at: %d",k);
+		// printf("")
+	}
+
+	fftw_free(in);
+	fftw_free(out);
+
+	return 0;
 }
+
+

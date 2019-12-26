@@ -24,7 +24,7 @@ vector<vector<string> > readcsv(string filePath) {
 	return strArray;
 }
 
-vector<float> grad(vector<float> input) {
+vector<float> grad(const vector<float>& input) {
 	vector<float> op;
 	float tmp;
 	for (int i = 0; i < input.size(); i++) {
@@ -38,7 +38,7 @@ vector<float> grad(vector<float> input) {
 	return op;
 }
 
-vector<double> grad(vector<double> input) {
+vector<double> grad(const vector<double>& input) {
 	vector<double> op;
 	double tmp;
 	for (int i = 0; i < input.size(); i++) {
@@ -52,7 +52,7 @@ vector<double> grad(vector<double> input) {
 	return op;
 }
 
-vector<float> m_conv(vector<float> input,int r,bool mean) {
+vector<float> m_conv(const vector<float> &input,int r,bool mean) {
 	vector<float> res;
 	int in_size = input.size();
 	for (int i = 0; i < in_size; i++) {
@@ -89,7 +89,7 @@ vector<float> m_conv(vector<float> input,int r,bool mean) {
 	return res;
 }
 
-vector<double> m_conv(vector<double> input,int r,bool mean) {
+vector<double> m_conv(const vector<double>& input,int r,bool mean) {
 	vector<double> res;
 	int in_size = input.size();
 	for (int i = 0; i < in_size; i++) {
