@@ -19,6 +19,14 @@ struct shareMemory{
     int data[2000];
 };
 
+struct shareMem{
+    int wmutex;
+    int rmutex;
+    int readcnt;
+    int index;
+    int data[80000];
+};
+
 using namespace std;
 int main()
 {
@@ -33,27 +41,40 @@ int main()
     key_t  key_n ;
     int shm_id;
     void *shm = NULL;
-    struct shareMemory *shared;
+    struct shareMem *shared;
 
-    if((key_n = ftok("/",'s')<0))  //生成共享内存的key值
+    if((key_n = ftok("/",'s')<0))  // 生成共享内存的key值
     {
         perror("Fail to ftok");
         exit(EXIT_SUCCESS);
     }
     printf("key num:%d\n",key_n);
  
-    if((shm_id = shmget(key_n,1024,0666|IPC_CREAT))==-1)  //创建共享内存
+    if((shm_id = shmget(key_n,4096,0666|IPC_CREAT))==-1)  // 创建共享内存
     {
         perror("Fail to shmget");
         exit(EXIT_SUCCESS);
     }
     printf("share memory id:%d\n",shm_id);
 
+    // -------------->
+    shm = shmat(shm_id,0,0);                     //将共享内存连接到当前进程的地址空间
+    if(shm==(void *)-1)
+    {
+        perror("Fail to shmat");
+        exit(EXIT_SUCCESS);
+    }
+    shared = (struct shareMem *)shm;
+    shared->rmutex = 1;
+    shared->wmutex = 1;
+    shared->readcnt = 0; 
+    shared->index = 0;
+    // ---------------->
 
-    //read 40000 points
+    // read 40000 points
     printf("40000 read finished\n");
 
-    //process
+    // process
     pid_t pid = fork();
     if(pid < 0){
         perror("error fork pid1 \n");
@@ -68,21 +89,36 @@ int main()
         }
         //printf("pid1 Memory attached at %x\n",(int)shm);
 
-        shared = (struct shareMemory *)shm;        //设置共享内存
+        shared = (struct shareMem *)shm;        //设置共享内存
         // shared->is_write = 1;
 
         // above are testing shm
         while(running){
-           
-            if(shared->is_write!=1)
+            printf("pid 1 is running\n");
+            if(shared->rmutex == 1)
             {
-                shared->is_write = 1;
-                printf("You worte:%d integers\n",shared->index);
-                for(int i=0;i<shared->index;i++){
-                    printf("%d ",shared->data[i]);
+                shared->rmutex = 0;
+                if(shared->readcnt == 0){
+                    while(shared->wmutex == 0){}
+                    shared->wmutex = 0;
                 }
-                printf("\n");
-                shared->is_write = 0;
+                shared->readcnt++;
+                shared->rmutex = 1;
+
+                //read operation
+                printf("in pid1 reading:\n");
+                if(shared->index%2==1&&shared->index>=1)
+                    printf("You wrote:%d\n",shared->data[shared->index-1]);
+                
+
+                //read finish
+                // signal mutex
+                while(shared->rmutex == 0){}
+                shared->rmutex = 0;
+                shared->readcnt--;
+                if(shared->readcnt == 0)
+                    shared->wmutex = 1;
+                shared->rmutex = 1;
  
                 // if(strncmp(shared->data,"end",3)==0)  //输入end退出循环
                 // {
@@ -111,7 +147,7 @@ int main()
         //         com_pointer_1 = (com_pointer_1+40000)%80000;
         //     }
         
-        printf("pid 1 is running\n");
+        printf("pid 1 is finished\n");
         sleep(2);
         }
     }
@@ -132,19 +168,36 @@ int main()
             }
             // printf("pid2 Memory attached at %x\n",(int)shm);
     
-            shared = (struct shareMemory *)shm;        //设置共享内存
+            shared = (struct shareMem *)shm;        //设置共享内存
             // shared->is_write = 1;
  
             sleep(2);
             while(running){
+                printf("pid 2 is running\n");
+                if(shared->rmutex == 1)
+                {
+                    // signal mutex
+                    shared->rmutex = 0;
+                    if(shared->readcnt == 0){
+                        while(shared->wmutex == 0){}
+                        shared->wmutex = 0;
+                    }
+                    shared->readcnt++;
+                    shared->rmutex = 1;
 
-                if(shared->is_write == 0){
-                    //向共享内存中写入数据
-                    shared->is_write = 1;
-                    printf("write in pid2:\n");
-                    shared->data[shared->index] = shared->index+5;
-                    shared->index++;
-                    shared->is_write = 0;        //写完数据后，置1使可读
+                    // read operation
+                    printf("in pid2 reading:\n");
+                    if(shared->index%2==0&&shared->index>=1)
+                        printf("You wrote:%d\n",shared->data[shared->index-1]);
+
+
+                    // signal mutex
+                    while(shared->rmutex == 0){}
+                    shared->rmutex = 0;
+                    shared->readcnt--;
+                    if(shared->readcnt == 0)
+                        shared->wmutex = 1;
+                    shared->rmutex = 1;
                 }
 
     
@@ -166,13 +219,20 @@ int main()
                 //     //iter
                 //     com_pointer_2 = (com_pointer_2+40000)%80000;
                 // }
-                printf("pid 2 is running\n");
+                printf("pid 2 is finished\n");
                 sleep(3);
             }
         }
         else{
             //main process
-            //read data
+            shm = shmat(shm_id,0,0);                     //将共享内存连接到当前进程的地址空间
+            if(shm==(void *)-1)
+            {
+                perror("Fail to shmat");
+                exit(EXIT_SUCCESS);
+            }
+            shared = (struct shareMem *)shm;        //设置共享内存
+            
             while(running){
                 // if(mutex1[write_iter]||mutex2[write_iter])
                 //     continue;
@@ -180,8 +240,18 @@ int main()
                 // printf("write data: %d\n",write_iter);
                 // data_avail[write_iter++] = 1;
                 printf("main process running\n");
-                sleep(5);
-              
+
+                if(shared->wmutex == 1)
+                {
+                    // signal mutex
+                    shared->wmutex = 0;
+                    // write operation
+                    shared->data[shared->index] = shared->index+1;
+                    shared->index++;
+                    printf("write in main process\n");
+                    shared->wmutex = 1;
+                }
+                sleep(3);
             }
         }
     }
